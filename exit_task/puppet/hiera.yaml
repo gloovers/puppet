@@ -1,0 +1,16 @@
+---
+# Hiera 5 Global configuration file
+
+# defaults:
+#   data_hash: yaml_data
+# hierarchy:
+#  - name: Common
+#    data_hash: yaml_data
+:hierarchy:
+  - "%{::environment}/node/%{::fqdn}"
+  - "%{::environment}/env_data"
+  - common
+:backends:
+    - yaml
+:yaml:
+    :datadir: '/etc/puppetlabs/puppet/data'

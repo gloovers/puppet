@@ -1,0 +1,19 @@
+<%- | $baseurl,
+      $baseurlnsp,
+      $gpgkey,
+      $gpgkeynsp,
+| -%>
+[zabbix]
+name=Zabbix Official Repository - $basearch
+baseurl=<%= $baseurl %>
+enabled=1
+gpgcheck=1
+gpgkey=<%= $gpgkey %>
+
+[zabbix-non-supported]
+name=Zabbix Official Repository non-supported - $basearch
+baseurl=<%= $baseurlnsp %>
+enabled=1
+gpgkey=<%= $gpgkeynsp %>
+gpgcheck=1
+

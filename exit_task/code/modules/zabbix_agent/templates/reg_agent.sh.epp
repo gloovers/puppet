@@ -1,0 +1,49 @@
+<%- | $zabbix_server,
+      $api_user,
+      $api_pass,
+| -%>
+#! /bin/bash
+
+# variables
+user='<%= $api_user %>'
+pass='<%= $api_pass %>'
+group='Hosts'
+dev_IP='enp0s8'
+template_id='10001'
+API_url='http://<%= $zabbix_server %>/api_jsonrpc.php'
+IP=$(ip address show dev $dev_IP | grep "inet " | awk '{print $2}'| sed 's/\/.*$//')
+name_host=$(hostname)
+
+# get token
+string=$(curl --silent -H "Content-Type: application/json-rpc" -X POST -d '{ "jsonrpc": "2.0", "method": "user.login", "params": { "user": "'"$user"'", "password": "'"$pass"'" }, "id": 1, "auth": null }' $API_url)
+
+if [[ "$string" =~ "error" ]]; then
+    echo " Can't get token. Error !"
+    exit 1
+fi
+token=$(echo $string | awk -F":|," '{print $4;}' )
+
+# main body
+string=$(curl --silent -H "Content-Type: application/json-rpc" -X POST -d '{ "jsonrpc": "2.0","method": "host.get","params": {"filter": {"host": "'"$name_host"'","ip":"'"$IP"'" } }, "auth": '$token',"id": 1 }' $API_url)
+
+if [[ "$string" =~ "$name_host" ]]; then
+    echo "Host is already exist! Nothing to do!"
+    exit 0
+else
+    string=$(curl --silent -H "Content-Type: application/json-rpc" -X POST -d '{ "jsonrpc": "2.0", "method": "hostgroup.get", "params": { "output": "extend", "filter": { "name": "'"$group"'" } }, "auth": '$token', "id": 1 }' $API_url)
+    if [[ "$string" =~ "$group" ]]; then
+        group_id=$(echo $string | awk -F":|,|{|}" '{print $7}' | sed 's/\[//g' | sed 's/\]//g')
+    else
+        string=$(curl --silent -H "Content-Type: application/json-rpc" -X POST -d '{ "jsonrpc": "2.0", "method": "hostgroup.create", "params": { "name": "'"$group"'"  }, "auth": '$token', "id": 1 }' $API_url)
+        group_id=$(echo $string | awk -F":|,|{|}" '{print $7}' | sed 's/\[//g' | sed 's/\]//g')
+    fi
+
+    string=$(curl --silent -H "Content-Type: application/json-rpc" -X POST -d '{ "jsonrpc": "2.0", "method": "host.create", "params": { "host": "'"$name_host"'", "interfaces": [ { "type": 1, "main": 1, "useip": 1, "ip": "'"$IP"'", "dns": "", "port": "10050" } ], "groups": [ {"groupid": '$group_id' } ], "templates": [ { "templateid": '$template_id' } ], "inventory_mode": 0, "inventory": { "macaddress_a": "01234", "macaddress_b": "56768" } }, "auth": '$token', "id": 1 } ' $API_url)
+    if [[ "$string" =~ "hostids" ]]; then
+        host_id=$(echo $string | awk -F":|,|{|}" '{print $7}' | sed 's/\[//g' | sed 's/\]//g')
+        echo "Host has been added to Zabbix Monitoring with id=$host_id ."
+    else
+        echo "Error. Something went wrong!"
+    fi
+fi
+

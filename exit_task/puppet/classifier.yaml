@@ -1,0 +1,3 @@
+- server: puppet.epam.com
+  port: 4433
+  prefix: /classifier-api

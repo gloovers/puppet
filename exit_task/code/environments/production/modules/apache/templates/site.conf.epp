@@ -1,0 +1,7 @@
+<%- | $site_path,
+| -%>
+
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot <%= $site_path %>
+</VirtualHost>

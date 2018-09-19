@@ -1,0 +1,10 @@
+profile::zabbix::server:baseurl: "http://repo.zabbix.com/zabbix/3.2/rhel/7/$basearch/"
+profile::zabbix::server:baseurlnsp: "http://repo.zabbix.com/non-supported/rhel/7/$basearch/"
+profile::zabbix::server:gpgkey: "https://repo.zabbix.com/RPM-GPG-KEY-ZABBIX-A14FE591"
+profile::zabbix::server:gpgkeynsp: "https://repo.zabbix.com/RPM-GPG-KEY-ZABBIX" 
+
+profile::zabbix::server:dbuser: "zabbix"
+profile::zabbix::server:dbpass: "zabbix"
+profile::zabbix::server:dbhost: "localhost"
+profile::zabbix::server:dbname: "zabbix"
+profile::zabbix::agent:zabbix_server: "192.168.1.250"
